@@ -16,8 +16,7 @@ int hnd_read(srv_t *ctx, int fd) {
 		return 1;
 	}
 
-	printf("[%i]: %s\n", fd, buffer);
-    cmd_execute(buffer);
+    cmd_execute(fd, buffer);
 
 	return 0;
 }

@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <string.h>
+
 #include "channel.h"
 
 /* XXX: O(n) insertion/deletion to channel subscriber list.
@@ -37,18 +40,20 @@ inline int ch_unsubscribe(int ch, int fd) {
     }
 }
 
-inline int ch_publish(int ch, int (*func_write)(int, char *, int), char *data, int size) {
+inline int ch_publish(int ch, int fd, char *data, int size) {
     /* TODO: Iterate only until the last subscriber */
     int i;
-    int n_published = 0;
+    char header[32];
 
     for(i = 0; i < SUBSCRIBER_LIMIT; i++) {
-        if(channels[ch].subscribers[i] != 0) {
-            func_write(channels[ch].subscribers[i], data, size);
-            n_published++;
+        if(channels[ch].subscribers[i] != 0 && channels[ch].subscribers[i] != fd) {
+            sprintf(header, "msg %d\n", ch);
+            write(channels[ch].subscribers[i], header, strlen(header));
+            write(channels[ch].subscribers[i], data, size);
+            write(channels[ch].subscribers[i], "\n", 1);
         }
     }
 
-    return n_published;
+    return CH_SUCCESS;
 }
 

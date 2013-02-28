@@ -1,14 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#define DEBUG
+#include "channel.h"
 
 #define ARG_LIMIT 8
 
-void cmd_execute(char *cmd) {
+void cmd_pub(int, char *[], char *);
+void cmd_sub(int, char *[], char *); 
+
+struct command {
+    char *name;
+    void (*func)(int, char *[], char *);
+};
+
+struct command commands[] = {
+                            {"pub", cmd_pub},
+                            {"sub", cmd_sub},
+                            {NULL,  NULL}
+                          };
+
+void cmd_execute(int fd, char *cmd) {
     char *args[ARG_LIMIT];
     char *body, *p;
     int i = 0, nargs = 0;
+
+    struct command *p_cmd = commands;
+    
     p = cmd;
 
     while(*cmd != 0) {
@@ -42,5 +60,23 @@ void cmd_execute(char *cmd) {
     if(body != NULL)
         printf("body: %s\n", body); 
 #endif
+    
+    while((*p_cmd).name != NULL) {
+        if(strcmp((*p_cmd).name, args[0]) == 0) {  
+           (*(*p_cmd).func)(fd, args, body);
+        }
+        p_cmd++;
+    }
 }
 
+void cmd_pub(int fd, char *args[], char *body) {
+    if(ch_publish(atoi(args[1]), fd, body, strlen(body)) == CH_SUCCESS) {
+        printf("[%d] Published to CH%s\n", fd, args[1]);
+    }
+}
+
+void cmd_sub(int fd, char *args[], char *body) {
+    if(ch_subscribe(atoi(args[1]), fd) == CH_SUCCESS) {
+        printf("[%d] Subscribed to CH%s\n", fd, args[1]);
+    }
+}
