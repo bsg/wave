@@ -25,7 +25,7 @@ struct command commands[] = {
 
 void cmd_execute(int fd, char *cmd, unsigned int size) {
     char *args[ARG_LIMIT];
-    char *body, *p;
+    char *body = NULL, *p;
     int i = 0, nargs = 0, is_parsing_header = 1;
 
     struct command *p_cmd = commands;
