@@ -2,7 +2,7 @@
 #define __GLOBALS_H
 
 typedef struct {
-    unsigned int port;
+    unsigned int tcp_port;
     unsigned int tcp_buffer_size;
     unsigned int message_buffer_size;
     unsigned int max_channel_count;

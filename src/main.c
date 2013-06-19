@@ -38,17 +38,32 @@ void sigpipe_handler(int signum) {
 }
 
 void set_default_globals() {
-    GLOBAL->port                        = 9999;
+    GLOBAL->tcp_port                    = 9999;
     GLOBAL->tcp_buffer_size             = 1024;
     GLOBAL->message_buffer_size         = 1024;
     GLOBAL->max_channel_count           = 256;
     GLOBAL->max_subscribers_per_channel = 32;
 }
 
+void load_globals_from_file(char *filename) {
+    /* Load and parse the configuration file */
+    config_init();
+    config_load_file(filename);
+
+    config_read_int("tcpPort", &(GLOBAL->tcp_port));
+    config_read_int("tcpBufferSize", &(GLOBAL->tcp_buffer_size));
+    config_read_int("messageBufferSize", &(GLOBAL->message_buffer_size));
+    config_read_int("maxChannelCount", &(GLOBAL->max_channel_count));
+    config_read_int("maxSubscribersPerChannel",
+        &(GLOBAL->max_subscribers_per_channel));
+
+    config_deinit();
+}
+
 void print_globals() {
-    printf("TCP read buffer size            : %d\n",
+    printf("TCP buffer size                 : %d bytes\n",
         GLOBAL->tcp_buffer_size);
-    printf("Message buffer size             : %d\n",
+    printf("Message buffer size             : %d bytes\n",
         GLOBAL->message_buffer_size);
     printf("Maximum channel count           : %d\n",
         GLOBAL->max_channel_count);
@@ -74,6 +89,7 @@ int main() {
     /* Initialize the global value store */
     globals_init();
     set_default_globals();
+    load_globals_from_file("./wave.cfg");
     
     /* libserv context */
 	srv_t ctx;
@@ -94,7 +110,7 @@ int main() {
 
     ch_init_all_channels();
 
-    sprintf(port, "%d", GLOBAL->port);
+    sprintf(port, "%d", GLOBAL->tcp_port);
     printf("Listening on port %s\n", port);
 	srv_run(&ctx, NULL, port);
 }
